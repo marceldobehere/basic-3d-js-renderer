@@ -4,6 +4,8 @@ This is a simple 3D renderer written in JavaScript.
 
 ![Screenshot](./images/thumb.png)
 
+try it [here](https://marceldobehere.github.io/basic-3d-js-renderer/).
+
 ## Controls
  - WASD, QE - Move Camera
  - Arrow keys - Rotate Camera
