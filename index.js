@@ -5,6 +5,10 @@ var canvas;
 var ctx;
 var canvasZArray;
 
+var goofy = false;
+var move = true;
+var wireframe = false;
+
 
 function nameToRgba(name) {
     let canvas = document.createElement('canvas');
@@ -478,13 +482,12 @@ function drawTriangles()
         let points = tri.points;
         let col = tri.color;
 
-        let goofy = false;
         if (goofy)
             rasterize3DTriangle(points, col);
         else
         {
             let tri5 = triangleTo2D(points);
-            drawTriangle(tri5, col, true);
+            drawTriangle(tri5, col, !wireframe);
         }
     }
 
@@ -494,7 +497,7 @@ function drawTriangles()
         //console.log(playerCenter);
         let playerCenter2d = pointTo2D(playerCenter);
         //console.log(playerCenter2d);
-        drawDot(playerCenter2d, "red");
+        drawPixel(playerCenter2d, "red", 6);
     }
 }
 
@@ -566,6 +569,13 @@ function keyDownHandler(key)
 {
     if (keyDict[key.key])
         return;
+
+    if (key.key == "g")
+        goofy = !goofy;
+    else if (key.key == "m")
+        move = !move;
+    else if (key.key == "x")
+        wireframe = !wireframe;
 
     keyDict[key.key] = setInterval(() => {keyDownRepeatHandler((key))}, 1000 / 40);
 }
@@ -665,6 +675,34 @@ function keyDownRepeatHandler(key)
     shouldDoFrame = true;
 }
 
+let hold = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
+document.addEventListener('mousedown', (e) =>
+{
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+    hold = true;
+});
+document.addEventListener('mouseup', () => hold = false);
+
+
+
+document.addEventListener('mousemove', (e) =>
+{
+    if (!hold)
+        return;
+
+    let dx = e.clientX - lastMouseX;
+    let dy = e.clientY - lastMouseY;
+
+    pRotation[0] += dx / 200;
+    pRotation[1] -= dy / 200;
+
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+});
+
 
 
 
@@ -716,13 +754,12 @@ function removeCube(cube)
     }
 }
 
-initCanvas(800, 800);
 
-addCube([0,100,0], 50);
-addCube([200,0,0], 25);
 
 function addTeapot(bottomPoint, mult)
 {
+    let teapot = [];
+
     for (let index = 0; index < _teapot.length; index += 9)
     {
         let x1 = _teapot[index + 0];
@@ -762,18 +799,49 @@ function addTeapot(bottomPoint, mult)
         y3 += bottomPoint[1];
         z3 += bottomPoint[2];
 
-        addTriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, "white");
+        teapot.push(addTriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3, "white"));
+    }
+    return teapot;
+}
+
+function moveTeaPot(teapot, offset)
+{
+    for (let i = 0; i < teapot.length; i++)
+    {
+        let tri = teapot[i];
+        for (let j = 0; j < tri.points.length; j++)
+        {
+            let point = tri.points[j];
+            point[0] += offset[0];
+            point[1] += offset[1];
+            point[2] += offset[2];
+        }
     }
 }
 
-addTeapot([0, 0, 0], 50);
 
 
+
+
+initCanvas(window.innerWidth, window.innerHeight);
+
+addCube([0,100,0], 50);
+addCube([200,0,0], 25);
+
+let pot = addTeapot([0, 0, 0], 50);
 
 setInterval(testFrame, 1000 / 30);
 
+let frame = 0;
 function testFrame()
 {
+    if (move)
+    {
+        frame++;
+        moveTeaPot(pot, [0, (frame % 40 > 20) ? 2 : -2, 0]);
+        shouldDoFrame = true;
+    }
+
     if (!shouldDoFrame)
         return;
     doFrame();
