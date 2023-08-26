@@ -701,6 +701,8 @@ document.addEventListener('mousemove', (e) =>
 
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
+
+    shouldDoFrame = true;
 });
 
 
